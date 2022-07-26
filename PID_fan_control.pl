@@ -142,11 +142,11 @@ $config_file = '/root/nas_fan_control/PID_fan_control_config.ini';
 
 ##DEFAULT VALUES
 ## Use the values declared below if the config file is not present
-$hd_ave_target = 38;         # PID control loop will target this average temperature for the warmest N disks
-$Kp = 16/3;                  # PID control loop proportional gain
+$hd_ave_target = 42;         # PID control loop will target this average temperature for the warmest N disks
+$Kp = 8/3;                  # PID control loop proportional gain
 $Ki = 0;                     # PID control loop integral gain
-$Kd = 24;                    # PID control loop derivative gain
-$hd_num_peak = 2;            # Number of warmest HDs to use when calculating average temp
+$Kd = 80;                    # PID control loop derivative gain
+$hd_num_peak = 6;            # Number of warmest HDs to use when calculating average temp
 $hd_fan_duty_start     = 60; # HD fan duty cycle when script starts
 
 ## DEBUG LEVEL
@@ -180,7 +180,7 @@ $hd_max_allowed_temp = 40; # celsius. PID control aborts and fans set to 100% du
                            # will be set to 100% if any drive reaches this temperature.
 
 ## NUMBER OF WARMEST HD TO AVERAGE                           
-# $hd_num_peak = 4;        # average the temperatures of this many warmest hard drives when calculating the average disk temperature
+# $hd_num_peak = 6;        # average the temperatures of this many warmest hard drives when calculating the average disk temperature
 
 ## CPU TEMP TO OVERRIDE HD FANS
 ## when the CPU climbs above this temperature, the HD fans will be overridden
@@ -192,10 +192,10 @@ $cpu_hd_override_temp = 68;
 ## If your HD fans contribute to the cooling of your CPU you should set this value.
 ## It will mean when you CPU heats up your HD fans will be turned up to help cool the
 ## case/cpu. This would only not apply if your HDs and fans are in a separate thermal compartment.
-$hd_fans_cool_cpu = 1;      # 1 if the hd fans should spin up to cool the cpu, 0 otherwise
+$hd_fans_cool_cpu = 0;      # 1 if the hd fans should spin up to cool the cpu, 0 otherwise
 
 ## HD FAN DUTY CYCLE TO OVERRIDE CPU FANS
-$cpu_fans_cool_hd            = 1;  # 1 if the CPU fans should spin up to cool the HDs, when needed.  0 otherwise.  This may be 
+$cpu_fans_cool_hd            = 0;  # 1 if the CPU fans should spin up to cool the HDs, when needed.  0 otherwise.  This may be 
                                    #   useful if the CPU fan zone also contains chassis exit fans, as an increase in chassis exit 
                                    #   fan speed may increase the HD cooling air flow.
 $hd_cpu_override_duty_cycle = 95;  # when the HD duty cycle equals or exceeds this value, the CPU fans may be overridden to help cool HDs
@@ -223,8 +223,8 @@ $cpu_temp_control = 1;  # 1 if the script will control a CPU fan to control CPU 
 ## You need to determine the actual max fan speeds that are achieved by the fans
 ## Connected to the cpu_fan_header and the hd_fan_header.
 ## These values are used to verify high/low fan speeds and trigger a BMC reset if necessary.
-$cpu_max_fan_speed    = 1800;
-$hd_max_fan_speed     = 3300;
+$cpu_max_fan_speed    = 2600; ## all-copper heatsink
+$hd_max_fan_speed     = 1400; ##u-nas default
 
 
 ## CPU FAN DUTY LEVELS
@@ -508,7 +508,7 @@ sub main
 ################################################# SUBS
 sub get_hd_list
 {
-    my $disk_list = `camcontrol devlist | grep -v "SSD" | grep -v "Verbatim" | grep -v "Kingston" | grep -v "Elements" | sed 's:.*(::;s:).*::;s:,pass[0-9]*::;s:pass[0-9]*,::' | egrep '^[a]*da[0-9]+\$' | tr '\012' ' '`;
+    my $disk_list = `camcontrol devlist | grep -v "SSD" | grep -v "Verbatim" | grep -v "Kingston" | grep -v "Elements" | grep -v "Agrade" | sed 's:.*(::;s:).*::;s:,pass[0-9]*::;s:pass[0-9]*,::' | egrep '^[a]*da[0-9]+\$' | tr '\012' ' '`;
     dprint(3,"$disk_list\n");
 
     my @vals = split(" ", $disk_list);
